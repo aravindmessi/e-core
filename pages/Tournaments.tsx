@@ -3,24 +3,49 @@ import React, { useState } from "react";
 const Tournaments: React.FC = () => {
   const [tab, setTab] = useState<"rules" | "register" | "fixtures">("rules");
 
+  // Form Fields
+  const [name, setName] = useState("");
+  const [gameId, setGameId] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
   // Payment selection
   const [amount, setAmount] = useState(50);
   const [method, setMethod] = useState("");
   const [userUpi, setUserUpi] = useState("");
 
-  // EDIT THIS – Your UPI ID
-  const receiverUpi = "aravindappu935@okaxis";
+  // UPDATED — Your new working Kotak UPI ID
+  const receiverUpi = "9159385383@kotak811";
   const receiverName = "EFootball Core Tournament";
 
   // Payment handler
   const handlePay = () => {
-    if (!method) {
-      alert("Select a payment method first!");
+    // VALIDATION
+    if (!name.trim() || !gameId.trim() || !email.trim() || !phone.trim() || !userUpi.trim()) {
+      alert("Please fill all the fields and provide valid information.");
       return;
     }
 
-    if (!userUpi.trim()) {
-      alert("Please enter your UPI ID.");
+    // Email validation
+    if (!email.includes("@") || !email.includes(".")) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    // Phone validation
+    if (phone.length < 10) {
+      alert("Please enter a valid phone number.");
+      return;
+    }
+
+    // UPI validation
+    if (!userUpi.includes("@")) {
+      alert("Please enter a valid UPI ID.");
+      return;
+    }
+
+    if (!method) {
+      alert("Select a payment method first!");
       return;
     }
 
@@ -36,14 +61,18 @@ const Tournaments: React.FC = () => {
       window.location.href = `upi://pay?${baseParams}`;
     }
 
-    // PhonePe (CORRECT FORMAT)
+    // PhonePe (correct)
     if (method === "PhonePe") {
-      window.location.href = `phonepe://upi/pay?${baseParams}`;
+      window.location.href =
+        `intent://pay?${baseParams}` +
+        `#Intent;scheme=upi;package=com.phonepe.app;end;`;
     }
 
-    // Paytm (CORRECT FORMAT)
+    // Paytm (correct)
     if (method === "Paytm") {
-      window.location.href = `paytm://upi/pay?${baseParams}`;
+      window.location.href =
+        `intent://pay?${baseParams}` +
+        `#Intent;scheme=upi;package=net.one97.paytm;end;`;
     }
   };
 
@@ -93,6 +122,8 @@ const Tournaments: React.FC = () => {
             <div>
               <label className="text-slate-400 text-sm">Name</label>
               <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white"
                 placeholder="Your name"
               />
@@ -102,6 +133,8 @@ const Tournaments: React.FC = () => {
             <div>
               <label className="text-slate-400 text-sm">eFootball ID</label>
               <input
+                value={gameId}
+                onChange={(e) => setGameId(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white"
                 placeholder="Game ID"
               />
@@ -111,6 +144,8 @@ const Tournaments: React.FC = () => {
             <div>
               <label className="text-slate-400 text-sm">Email</label>
               <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white"
                 placeholder="example@gmail.com"
@@ -121,6 +156,8 @@ const Tournaments: React.FC = () => {
             <div>
               <label className="text-slate-400 text-sm">Phone Number</label>
               <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 type="tel"
                 className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white"
                 placeholder="9876543210"

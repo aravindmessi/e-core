@@ -1,11 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import Navbar from './Navbar';
+import { Outlet } from "react-router-dom";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -20,7 +17,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const particles: { x: number; y: number; dx: number; dy: number; size: number; color: string }[] = [];
     const particleCount = 70;
 
-    const colors = ['rgba(168, 85, 247, 0.5)', 'rgba(59, 130, 246, 0.5)', 'rgba(255, 255, 255, 0.2)'];
+    const colors = [
+      'rgba(168, 85, 247, 0.5)',
+      'rgba(59, 130, 246, 0.5)',
+      'rgba(255, 255, 255, 0.2)'
+    ];
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
@@ -35,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
-      
+
       particles.forEach((p) => {
         p.x += p.dx;
         p.y += p.dy;
@@ -49,7 +50,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         ctx.fill();
       });
 
-      // Draw connections
       particles.forEach((p1, i) => {
         particles.slice(i + 1).forEach((p2) => {
           const dx = p1.x - p2.x;
@@ -83,23 +83,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-white overflow-x-hidden selection:bg-purple-500 selection:text-white">
+      
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40"
       />
-      
+
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
+
+        {/* IMPORTANT FIX — This renders your pages correctly */}
         <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
+          <Outlet />
         </main>
-        
+
         <footer className="border-t border-slate-800 bg-slate-950/80 backdrop-blur-md mt-12 py-8 relative z-20">
           <div className="container mx-auto px-4 text-center">
-             <div className="flex justify-center items-center gap-2 mb-4">
-                <span className="text-2xl font-bold gamer-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">eFootball Core</span>
-             </div>
-             <p className="text-slate-400 text-sm">© 2024 eFootball Core. Not affiliated with Konami.</p>
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <span className="text-2xl font-bold gamer-font text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
+                eFootball Core
+              </span>
+            </div>
+            <p className="text-slate-400 text-sm">© 2024 eFootball Core. Not affiliated with Konami.</p>
           </div>
         </footer>
       </div>
