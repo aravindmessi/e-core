@@ -14,9 +14,10 @@ import Tournaments from "./pages/Tournaments";
 import AdminLogin from "./pages/adminLogin";
 import AdminDashboard from "./pages/adminDashboard";
 import RequireAdmin from "./components/requireAdmin";
+import UpcomingList from "./pages/UpcomingList";
 import EditUpcomingPlayer from "./pages/editUpcomingPlayer";
-import UpcomingList from "./pages/upcomingList";
 import AddUpcomingPlayer from "./pages/addUpcomingPlayers";
+
 
 const App: React.FC = () => {
   return (
