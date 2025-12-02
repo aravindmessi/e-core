@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const Tournaments: React.FC = () => {
   const [tab, setTab] = useState<"rules" | "register" | "fixtures">("rules");
@@ -12,13 +13,23 @@ const Tournaments: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [userUpi, setUserUpi] = useState("");
   const [amount, setAmount] = useState(50);
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
 
-  // 🔴 IMPORTANT: put your copied Firebase QR URL here
-  const qrUrl ="https://firebasestorage.googleapis.com/v0/b/e-core-c34c3.firebasestorage.app/o/tournament%2Fqr.png?alt=media&token=5979b9c6-4067-4a28-adcd-3ed4fa9976b7"
+  // Your QR URL
+  const qrUrl =
+    "https://firebasestorage.googleapis.com/v0/b/e-core-c34c3.firebasestorage.app/o/tournament%2Fqr.png?alt=media&token=5979b9c6-4067-4a28-adcd-3ed4fa9976b7";
+
+  // Handle Submit
   const handleSubmit = async () => {
-    // VALIDATION
-    if (!name.trim() || !gameId.trim() || !email.trim() || !phone.trim() || !userUpi.trim()) {
-      alert("Please fill all fields correctly.");
+    if (
+      !name.trim() ||
+      !gameId.trim() ||
+      !email.trim() ||
+      !phone.trim() ||
+      !userUpi.trim() ||
+      !screenshotFile
+    ) {
+      alert("Please fill all fields and upload screenshot.");
       return;
     }
 
@@ -38,6 +49,13 @@ const Tournaments: React.FC = () => {
     }
 
     try {
+      // Upload screenshot
+      const filePath = `paymentScreenshots/${Date.now()}_${screenshotFile.name}`;
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, screenshotFile);
+      const screenshotUrl = await getDownloadURL(storageRef);
+
+      // Save to Firestore
       await addDoc(collection(db, "tournamentRegistrations"), {
         name,
         gameId,
@@ -45,12 +63,20 @@ const Tournaments: React.FC = () => {
         phone,
         userUpi,
         amount,
-        paymentMethod: "QR",
-        paymentStatus: "PENDING",
+        screenshotUrl,
+        paymentMethod: "QR Scan",
+        paymentStatus: "PENDING", // You will check manually
         createdAt: serverTimestamp(),
       });
 
-      alert("Registration saved! Please pay using the QR and send screenshot to admin.");
+      alert("Registration saved successfully!");
+      setName("");
+      setGameId("");
+      setEmail("");
+      setPhone("");
+      setUserUpi("");
+      setScreenshotFile(null);
+
     } catch (err) {
       console.error(err);
       alert("Error saving registration.");
@@ -59,7 +85,9 @@ const Tournaments: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-16">
-      <h2 className="text-3xl font-bold gamer-font mb-8 text-white">Tournament</h2>
+      <h2 className="text-3xl font-bold gamer-font mb-8 text-white">
+        Tournament
+      </h2>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-10">
@@ -68,7 +96,9 @@ const Tournaments: React.FC = () => {
             key={t}
             onClick={() => setTab(t as any)}
             className={`px-4 py-2 rounded font-bold ${
-              tab === t ? "bg-purple-600 text-white" : "bg-slate-800 text-slate-300"
+              tab === t
+                ? "bg-purple-600 text-white"
+                : "bg-slate-800 text-slate-300"
             }`}
           >
             {t.toUpperCase()}
@@ -79,7 +109,9 @@ const Tournaments: React.FC = () => {
       {/* RULES */}
       {tab === "rules" && (
         <div className="bg-slate-900 p-6 rounded-xl border border-purple-500/20 space-y-2">
-          <h3 className="text-xl font-bold text-purple-400">Tournament Rules</h3>
+          <h3 className="text-xl font-bold text-purple-400">
+            Tournament Rules
+          </h3>
           <ul className="text-slate-300 list-disc pl-6">
             <li>Online matches only</li>
             <li>No cheating or modded apps</li>
@@ -143,24 +175,29 @@ const Tournaments: React.FC = () => {
             {/* QR */}
             <div className="mt-4 text-center">
               <h4 className="text-cyan-400 font-bold mb-2">Scan & Pay</h4>
-              {qrUrl ? (
-                <img
-                  src={qrUrl}
-                  alt="Tournament QR"
-                  className="w-56 mx-auto rounded-lg"
-                />
-              ) : (
-                <p className="text-slate-400 text-sm">
-                  QR not configured yet.
-                </p>
-              )}
+              <img
+                src={qrUrl}
+                alt="Tournament QR"
+                className="w-56 mx-auto rounded-lg"
+              />
+            </div>
+
+            {/* SCREENSHOT UPLOAD */}
+            <div className="mt-4">
+              <label className="text-slate-300 text-sm">Upload Payment Screenshot</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
+                className="w-full mt-1"
+              />
             </div>
 
             <button
               onClick={handleSubmit}
               className="w-full bg-green-600 hover:bg-green-500 text-white py-3 rounded font-bold mt-4"
             >
-              I HAVE PAID – SAVE MY REGISTRATION
+              SAVE MY REGISTRATION
             </button>
           </div>
         </div>
@@ -177,8 +214,3 @@ const Tournaments: React.FC = () => {
 };
 
 export default Tournaments;
-
-
-
-
-
