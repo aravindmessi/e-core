@@ -22,10 +22,10 @@ const FORMATIONS: Formation[] = [
   },
   { 
     id: '2', 
-    name: '4-1-2-3 Sepahan', 
+    name: '4-1-2-3 pg', 
     diagram: '4123', 
     playstyle: 'Possession Game',
-    imageUrl: "your_fb_url_here",
+    imageUrl: "https://firebasestorage.googleapis.com/v0/b/e-core-c34c3.firebasestorage.app/o/d34055b3e4229e14fc60cb56d031dc27%20(1).jpg?alt=media&token=b3debd34-5f64-46d1-bc74-26b105cabc58",
     roles: ['Orchestrator', 'Creative Playmaker'], 
     strengths: ['Ball retention', 'Midfield dominance'], 
     weaknesses: ['Vulnerable to counters'] 
