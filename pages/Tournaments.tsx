@@ -12,7 +12,7 @@ const Tournaments: React.FC = () => {
   const [userUpi, setUserUpi] = useState("");
   const [amount, setAmount] = useState(50);
 
-  const receiverUpi = "9159385383@kotak811";
+  const receiverUpi = "9159385383@ybl";
 
   const handleSubmit = async () => {
     if (
