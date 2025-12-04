@@ -1,35 +1,28 @@
 import React, { useState } from "react";
-import { db, storage } from "../firebase";
+import { db } from "../firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const Tournaments: React.FC = () => {
   const [tab, setTab] = useState<"rules" | "register" | "fixtures">("rules");
 
-  // Form Fields
   const [name, setName] = useState("");
   const [gameId, setGameId] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [userUpi, setUserUpi] = useState("");
   const [amount, setAmount] = useState(50);
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
 
-  // Your QR URL
-  const qrUrl =
-    "https://firebasestorage.googleapis.com/v0/b/e-core-c34c3.firebasestorage.app/o/tournament%2Fqr.png?alt=media&token=5979b9c6-4067-4a28-adcd-3ed4fa9976b7";
+  const receiverUpi = "9159385383@kotak811";
 
-  // Handle Submit
   const handleSubmit = async () => {
     if (
       !name.trim() ||
       !gameId.trim() ||
       !email.trim() ||
       !phone.trim() ||
-      !userUpi.trim() ||
-      !screenshotFile
+      !userUpi.trim()
     ) {
-      alert("Please fill all fields and upload screenshot.");
+      alert("Please fill all fields.");
       return;
     }
 
@@ -49,13 +42,6 @@ const Tournaments: React.FC = () => {
     }
 
     try {
-      // Upload screenshot
-      const filePath = `paymentScreenshots/${Date.now()}_${screenshotFile.name}`;
-      const storageRef = ref(storage, filePath);
-      await uploadBytes(storageRef, screenshotFile);
-      const screenshotUrl = await getDownloadURL(storageRef);
-
-      // Save to Firestore
       await addDoc(collection(db, "tournamentRegistrations"), {
         name,
         gameId,
@@ -63,31 +49,26 @@ const Tournaments: React.FC = () => {
         phone,
         userUpi,
         amount,
-        screenshotUrl,
-        paymentMethod: "QR Scan",
-        paymentStatus: "PENDING", // You will check manually
+        paymentStatus: "PENDING",
         createdAt: serverTimestamp(),
       });
 
-      alert("Registration saved successfully!");
+      alert("Registration submitted!");
+
       setName("");
       setGameId("");
       setEmail("");
       setPhone("");
       setUserUpi("");
-      setScreenshotFile(null);
-
     } catch (err) {
       console.error(err);
-      alert("Error saving registration.");
+      alert("Error saving registration");
     }
   };
 
   return (
-    <div className="min-h-screen pb-16">
-      <h2 className="text-3xl font-bold gamer-font mb-8 text-white">
-        Tournament
-      </h2>
+    <div className="min-h-screen pb-16 text-white">
+      <h2 className="text-3xl font-bold gamer-font mb-8">Tournament</h2>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-10">
@@ -108,16 +89,22 @@ const Tournaments: React.FC = () => {
 
       {/* RULES */}
       {tab === "rules" && (
-        <div className="bg-slate-900 p-6 rounded-xl border border-purple-500/20 space-y-2">
-          <h3 className="text-xl font-bold text-purple-400">
-            Tournament Rules
-          </h3>
-          <ul className="text-slate-300 list-disc pl-6">
-            <li>Online matches only</li>
-            <li>No cheating or modded apps</li>
-            <li>Direct knockout</li>
-            <li>Winner must submit screenshot</li>
+        <div className="bg-slate-900 p-6 rounded-xl border border-purple-500/20 space-y-4 max-w-xl">
+          <h3 className="text-2xl font-bold text-purple-400">Tournament Rules</h3>
+
+          <ul className="list-disc pl-6 text-slate-300 space-y-2">
+            <li>Online match only (No eFootball Friend Match).</li>
+            <li>Only fair play — no cheating, no modded apps.</li>
+            <li>Direct knockout format (Lose = Eliminated).</li>
+            <li>Winner must report match result immediately.</li>
+            <li>If opponent does not respond within 10 mins → walkover.</li>
+            <li>No rage quit — quitting = disqualification.</li>
+            <li>Organizer decisions are final.</li>
           </ul>
+
+          <p className="text-slate-400 text-sm italic mt-3">
+            Play fair and respect opponents!
+          </p>
         </div>
       )}
 
@@ -162,42 +149,54 @@ const Tournaments: React.FC = () => {
               placeholder="yourupi@bank"
             />
 
+            {/* AMOUNT */}
             <select
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white mt-1 mb-4"
+              className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white"
             >
               <option value={20}>₹20</option>
               <option value={30}>₹30</option>
               <option value={50}>₹50</option>
             </select>
 
-            {/* QR */}
-            <div className="mt-4 text-center">
-              <h4 className="text-cyan-400 font-bold mb-2">Scan & Pay</h4>
-              <img
-                src={qrUrl}
-                alt="Tournament QR"
-                className="w-56 mx-auto rounded-lg"
-              />
-            </div>
+            {/* SIMPLE PAYMENT INSTRUCTIONS */}
+            <div className="p-4 bg-slate-800 border border-slate-700 rounded text-center">
+              <p className="text-white font-semibold mb-2">
+                Send payment manually to:
+              </p>
 
-            {/* SCREENSHOT UPLOAD */}
-            <div className="mt-4">
-              <label className="text-slate-300 text-sm">Upload Payment Screenshot</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
-                className="w-full mt-1"
-              />
+              <p className="text-cyan-400 text-lg font-bold">{receiverUpi}</p>
+
+              <button
+                className="mt-3 bg-purple-600 text-white px-4 py-2 rounded"
+                onClick={() => navigator.clipboard.writeText(receiverUpi)}
+              >
+                COPY UPI ID
+              </button>
+
+              <div className="flex gap-3 justify-center mt-4">
+                <a
+                  href="phonepe://"
+                  className="bg-purple-700 px-4 py-2 rounded text-white text-sm"
+                >
+                  Open PhonePe
+                </a>
+
+                <a
+                  href="gpay://"
+                  className="bg-green-600 px-4 py-2 rounded text-white text-sm"
+                >
+                  Open GPay
+                </a>
+              </div>
             </div>
 
             <button
               onClick={handleSubmit}
-              className="w-full bg-green-600 hover:bg-green-500 text-white py-3 rounded font-bold mt-4"
+              className="w-full bg-green-600 hover:bg-green-500 text-white py-3 rounded font-bold"
             >
-              SAVE MY REGISTRATION
+              SUBMIT REGISTRATION
             </button>
           </div>
         </div>
@@ -205,10 +204,46 @@ const Tournaments: React.FC = () => {
 
       {/* FIXTURES */}
       {tab === "fixtures" && (
-        <div className="bg-slate-900 p-6 rounded-xl border border-pink-500/20 text-white">
-          Fixtures coming soon…
+        <div className="bg-slate-900 p-6 rounded-xl border border-pink-500/20 max-w-3xl">
+          <h3 className="text-2xl font-bold text-pink-400 mb-6">
+            Knockout Fixtures (Mindmap View)
+          </h3>
+
+          <div className="grid grid-cols-3 gap-6 text-center">
+
+            {/* Round 1 */}
+            <div className="space-y-6">
+              <h4 className="text-sm text-slate-400">ROUND 1</h4>
+              {[1,2,3,4].map((n) => (
+                <div key={n} className="p-3 bg-slate-800 border border-slate-700 rounded-lg">
+                  Player {n} vs Player {n+1}
+                </div>
+              ))}
+            </div>
+
+            {/* Semi Finals */}
+            <div className="space-y-12 pt-10">
+              <h4 className="text-sm text-slate-400">SEMI FINALS</h4>
+              <div className="p-3 bg-slate-800 border border-slate-700 rounded-lg">
+                Winner Match 1 vs Winner Match 2
+              </div>
+              <div className="p-3 bg-slate-800 border border-slate-700 rounded-lg">
+                Winner Match 3 vs Winner Match 4
+              </div>
+            </div>
+
+            {/* Finals */}
+            <div className="space-y-20 pt-16">
+              <h4 className="text-sm text-slate-400">FINALS</h4>
+              <div className="p-3 bg-slate-800 border border-slate-700 rounded-lg">
+                SF Winner 1 vs SF Winner 2
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
+
     </div>
   );
 };
